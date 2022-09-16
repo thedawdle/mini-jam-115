@@ -7,7 +7,7 @@ script/source = "extends RigidBody3D
 
 class_name Leaf
 
-const MAX_SPEED:float = 20.0
+const MAX_SPEED:float = 100.0
 const INPUT_FORCE:float = 0.1
 const DRAG_FORCE:float = 0.5
 
@@ -31,13 +31,18 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 	if input_torque != 00.:
 		apply_torque(Vector3(0, 0, input_torque))
 	
-	# Use the leaf's rotation to add force which should simulate
-	# the air pressure being applied to the turned body of the leaf.
 	var rotation:float = global_transform.basis.y.x
 	var is_flipped:bool = global_transform.basis.y.y < 0.0
-	if is_flipped: rotation *= -1
+	var horizontal_force:float = rotation
+	if is_flipped: horizontal_force *= -1
 	
-	apply_central_force(Vector3(rotation, 0, 0))
+	# If the leaf is more vertical, it should fall faster.
+	var rotation_abs:float = abs(rotation) # 0.0 is vertical --> 1.0 is horizontal
+	var vertical_force = lerp(0.0, -0.5, rotation_abs)
+	
+	# Use the leaf's rotation to add force which should simulate
+	# the air/atmo pressure being applied to the turned surface of the leaf.
+	apply_central_force(Vector3(horizontal_force, vertical_force, 0))
 	
 	# Cap the leaf velocity
 	if state.linear_velocity.length() > MAX_SPEED:
@@ -51,14 +56,16 @@ size = Vector2(2, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ateu"]
 cull_mode = 2
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_qjbug"]
-points = PackedVector3Array(1.01587, 0.015873, 0.531746, -1.01587, -0.015873, -0.515873, -1.01587, 0.015873, -0.515873, 1.01587, -0.015873, -0.515873, -1.01587, -0.015873, 0.531746, -1.01587, 0.015873, 0.531746, 1.01587, 0.015873, -0.515873, 1.01587, -0.015873, 0.531746)
+[sub_resource type="BoxShape3D" id="BoxShape3D_u0q8b"]
+size = Vector3(2, 0.1, 1)
 
 [node name="Leaf" type="RigidBody3D"]
+axis_lock_linear_z = true
 axis_lock_angular_x = true
 axis_lock_angular_y = true
 mass = 0.01
-gravity_scale = 0.5
+linear_damp_mode = 1
+linear_damp = 1.0
 angular_damp = 5.0
 script = SubResource("GDScript_ls7ra")
 
@@ -67,4 +74,4 @@ mesh = SubResource("PlaneMesh_svv4g")
 surface_material_override/0 = SubResource("StandardMaterial3D_1ateu")
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="."]
-shape = SubResource("ConvexPolygonShape3D_qjbug")
+shape = SubResource("BoxShape3D_u0q8b")
