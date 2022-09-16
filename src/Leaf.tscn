@@ -32,10 +32,10 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 		apply_torque(Vector3(0, 0, input_torque))
 	
 	# 1.0 is horizontal ->> 0.0 is vertical
-	var rotation_abs:float = abs(global_transform.basis.y.y)
-	var rotation_force:float = 1.0 / rotation_abs
-	print(global_transform.basis.y)
-	apply_central_force(Vector3(rotation_force, 0, 0))
+#	var rotation_abs:float = abs(global_transform.basis.y.y)
+#	var rotation_force:float = 1.0 / rotation_abs
+#	print(global_transform.basis.y)
+#	apply_central_force(Vector3(rotation_force, 0, 0))
 	
 	if state.linear_velocity.length() > MAX_SPEED:
 		state.linear_velocity = state.linear_velocity.normalized() * MAX_SPEED
