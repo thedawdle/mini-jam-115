@@ -11,5 +11,6 @@ config_version=5
 [application]
 
 config/name="mini-jam-115"
+run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.0", "Vulkan Clustered")
 config/icon="res://icon.svg"

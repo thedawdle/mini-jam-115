@@ -1,0 +1,67 @@
+[gd_scene load_steps=5 format=3 uid="uid://bx86jwxuba0cr"]
+
+[sub_resource type="GDScript" id="GDScript_ls7ra"]
+resource_name = "Leaf"
+script/source = "extends RigidBody3D
+
+
+class_name Leaf
+
+const MAX_SPEED:float = 20.0
+const INPUT_FORCE:float = 0.1
+const DRAG_FORCE:float = 0.5
+
+
+var input_torque:float = 0.0
+
+
+func _process(delta):
+	input_torque = 0.0
+	if Input.is_action_pressed(\"ui_left\"):
+		input_torque += INPUT_FORCE
+	if Input.is_action_pressed(\"ui_right\"):
+		input_torque -= INPUT_FORCE
+#	if Input.is_action_pressed(\"ui_up\"):
+#		input_force.y += INPUT_FORCE
+#	if Input.is_action_pressed(\"ui_down\"):
+#		input_force.y -= INPUT_FORCE
+
+
+func _integrate_forces(state:PhysicsDirectBodyState3D):
+	if input_torque != 00.:
+		apply_torque(Vector3(0, 0, input_torque))
+	
+	# 1.0 is horizontal ->> 0.0 is vertical
+	var rotation_abs:float = abs(global_transform.basis.y.y)
+	var rotation_force:float = 1.0 / rotation_abs
+	print(global_transform.basis.y)
+	apply_central_force(Vector3(rotation_force, 0, 0))
+	
+	if state.linear_velocity.length() > MAX_SPEED:
+		state.linear_velocity = state.linear_velocity.normalized() * MAX_SPEED
+	
+"
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_svv4g"]
+size = Vector2(2, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ateu"]
+cull_mode = 2
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_qjbug"]
+points = PackedVector3Array(1.01587, 0.015873, 0.531746, -1.01587, -0.015873, -0.515873, -1.01587, 0.015873, -0.515873, 1.01587, -0.015873, -0.515873, -1.01587, -0.015873, 0.531746, -1.01587, 0.015873, 0.531746, 1.01587, 0.015873, -0.515873, 1.01587, -0.015873, 0.531746)
+
+[node name="Leaf" type="RigidBody3D"]
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+mass = 0.01
+gravity_scale = 0.5
+angular_damp = 5.0
+script = SubResource("GDScript_ls7ra")
+
+[node name="MeshInstance3d" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_svv4g")
+surface_material_override/0 = SubResource("StandardMaterial3D_1ateu")
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="."]
+shape = SubResource("ConvexPolygonShape3D_qjbug")
