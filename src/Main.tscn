@@ -15,9 +15,13 @@ const START_Y:float = 500.0
 var current_leaf:RigidBody3D
 
 @onready var camera:Camera3D = $Camera3d
+@onready var wind_start_timer:Timer = $WindStartTimer
+@onready var wind_end_timer:Timer = $WindEndTimer
 
 
 func _ready():
+	randomize()
+	
 	new_leaf()
 
 
@@ -31,6 +35,18 @@ func new_leaf() -> void:
 	
 	camera.target_node = leaf
 	current_leaf = leaf
+
+
+func _on_wind_start_timer_timeout():
+	var origin:Vector3 = Wind.get_random_origin()
+	var direction:Vector3 = Wind.get_random_direction()
+	
+	Wind.start.emit(origin, direction)
+	wind_end_timer.start()
+
+
+func _on_wind_end_timer_timeout():
+	Wind.end.emit()
 "
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_utqwn"]
@@ -87,3 +103,14 @@ environment = SubResource("Environment_2hws0")
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 500, -75.168)
 mesh = SubResource("PlaneMesh_uegxa")
 surface_material_override/0 = SubResource("StandardMaterial3D_tpehb")
+
+[node name="WindStartTimer" type="Timer" parent="."]
+wait_time = 8.0
+autostart = true
+
+[node name="WindEndTimer" type="Timer" parent="."]
+wait_time = 1.5
+one_shot = true
+
+[connection signal="timeout" from="WindStartTimer" to="." method="_on_wind_start_timer_timeout"]
+[connection signal="timeout" from="WindEndTimer" to="." method="_on_wind_end_timer_timeout"]

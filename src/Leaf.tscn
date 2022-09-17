@@ -10,11 +10,20 @@ class_name Leaf
 const MAX_SPEED:float = 100.0
 const INPUT_FORCE:float = 0.1
 const DRAG_FORCE:float = 0.5
+const WIND_FORCE:float = 0.5
 
 
 var input_torque:Vector3 = Vector3.ZERO
+var wind_origin:Vector3 = Vector3.ZERO
+var wind_direction:Vector3 = Vector3.ZERO
+
 
 @onready var mesh:MeshInstance3D = $MeshInstance3d
+
+
+func _ready():
+	Wind.start.connect(self._on_wind_start)
+	Wind.end.connect(self._on_wind_end)
 
 
 func _process(delta):
@@ -30,7 +39,28 @@ func _process(delta):
 		input_torque.x -= INPUT_FORCE
 
 
+func _on_wind_start(origin:Vector3, direction:Vector3):
+	wind_origin = origin
+	
+	var norm_direction:Vector3 = direction.normalized() * WIND_FORCE
+	wind_direction = Vector3(
+		norm_direction.x,
+		direction.y,
+		norm_direction.z)
+	
+	# This impulse will spin the leaf (offset), but the rest of the wind only pushes it (central force).
+	apply_impulse(norm_direction / 10, origin)
+
+
+func _on_wind_end():
+	wind_origin = Vector3.ZERO
+	wind_direction = Vector3.ZERO
+
+
 func _integrate_forces(state:PhysicsDirectBodyState3D):
+	if wind_direction != Vector3.ZERO:
+		apply_central_force(wind_direction)
+		
 	if input_torque != Vector3.ZERO:
 		apply_torque(input_torque)
 	
@@ -50,6 +80,7 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 	# Use the leaf's rotation to add force which should simulate
 	# the air/atmo pressure being applied to the turned surface of the leaf.
 	apply_central_force(Vector3(horizontal_force, vertical_force, forward_force))
+	
 	
 	# Cap the leaf velocity
 	if state.linear_velocity.length() > MAX_SPEED:
@@ -71,7 +102,7 @@ axis_lock_angular_y = true
 mass = 0.01
 linear_damp_mode = 1
 linear_damp = 1.0
-angular_damp = 5.0
+angular_damp = 2.0
 script = SubResource("GDScript_ls7ra")
 
 [node name="MeshInstance3d" type="MeshInstance3D" parent="."]
