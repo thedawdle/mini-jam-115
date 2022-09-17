@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://wigrwh432who"]
+[gd_scene load_steps=7 format=3 uid="uid://wigrwh432who"]
 
 [ext_resource type="Texture2D" uid="uid://dq3cgs61yyjya" path="res://assets/trace_01.png" id="1_x7lnb"]
 
@@ -24,15 +24,34 @@ color = Color(1, 1, 1, 0.352941)
 turbulence_enabled = true
 turbulence_noise_scale = 1.52
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_6v71g"]
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_k5b8f"]
+section_segments = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4ysbn"]
+blend_mode = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.54902)
+albedo_texture = ExtResource("1_x7lnb")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_yw6le"]
 
 [node name="Sky" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, -0.0435671, 0.99905, 0, -0.99905, -0.0435671, 0, 0, 0)
 
 [node name="GpuParticles3d" type="GPUParticles3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
 material_override = SubResource("StandardMaterial3D_kvobj")
 amount = 250
 lifetime = 1.5
 process_material = SubResource("ParticleProcessMaterial_u1fqb")
-draw_pass_1 = SubResource("PlaneMesh_6v71g")
+draw_pass_1 = SubResource("RibbonTrailMesh_k5b8f")
+
+[node name="CpuParticles3d" type="CPUParticles3D" parent="."]
+material_override = SubResource("StandardMaterial3D_4ysbn")
+amount = 250
+mesh = SubResource("PlaneMesh_yw6le")
+emission_shape = 3
+emission_box_extents = Vector3(20, 50, 1)
+spread = 0.0
