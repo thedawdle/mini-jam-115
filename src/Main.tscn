@@ -24,6 +24,7 @@ func _ready():
 	randomize()
 	
 	new_leaf()
+	_on_wind_start_timer_timeout()
 
 
 func new_leaf() -> void:
@@ -43,11 +44,13 @@ func _on_wind_start_timer_timeout():
 	var direction:Vector3 = Wind.get_random_direction()
 	
 	Wind.start.emit(origin, direction)
-	wind_end_timer.start()
+	wind_end_timer.start(Wind.get_random_duration())
 
 
 func _on_wind_end_timer_timeout():
 	Wind.end.emit()
+	wind_start_timer.start(Wind.get_random_wait())
+	
 "
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jla10"]
@@ -128,8 +131,7 @@ mesh = SubResource("PlaneMesh_uegxa")
 surface_material_override/0 = SubResource("StandardMaterial3D_tpehb")
 
 [node name="WindStartTimer" type="Timer" parent="."]
-wait_time = 8.0
-autostart = true
+one_shot = true
 
 [node name="WindEndTimer" type="Timer" parent="."]
 wait_time = 1.5
