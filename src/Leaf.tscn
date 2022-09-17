@@ -12,37 +12,44 @@ const INPUT_FORCE:float = 0.1
 const DRAG_FORCE:float = 0.5
 
 
-var input_torque:float = 0.0
+var input_torque:Vector3 = Vector3.ZERO
+
+@onready var mesh:MeshInstance3D = $MeshInstance3d
 
 
 func _process(delta):
-	input_torque = 0.0
+	input_torque = Vector3.ZERO
+	
 	if Input.is_action_pressed(\"ui_left\"):
-		input_torque += INPUT_FORCE
+		input_torque.z += INPUT_FORCE
 	if Input.is_action_pressed(\"ui_right\"):
-		input_torque -= INPUT_FORCE
-#	if Input.is_action_pressed(\"ui_up\"):
-#		input_force.y += INPUT_FORCE
-#	if Input.is_action_pressed(\"ui_down\"):
-#		input_force.y -= INPUT_FORCE
+		input_torque.z -= INPUT_FORCE
+	if Input.is_action_pressed(\"ui_up\"):
+		input_torque.x += INPUT_FORCE
+	if Input.is_action_pressed(\"ui_down\"):
+		input_torque.x -= INPUT_FORCE
 
 
 func _integrate_forces(state:PhysicsDirectBodyState3D):
-	if input_torque != 00.:
-		apply_torque(Vector3(0, 0, input_torque))
+	if input_torque != Vector3.ZERO:
+		apply_torque(input_torque)
 	
-	var rotation:float = global_transform.basis.y.x
 	var is_flipped:bool = global_transform.basis.y.y < 0.0
-	var horizontal_force:float = rotation
+	
+	var rotation_x:float = global_transform.basis.y.x
+	var horizontal_force:float = rotation_x
 	if is_flipped: horizontal_force *= -1
 	
+	var forward_force:float = global_transform.basis.y.z * 0.1
+	if is_flipped: forward_force *= -1
+	
 	# If the leaf is more vertical, it should fall faster.
-	var rotation_abs:float = abs(rotation) # 0.0 is vertical --> 1.0 is horizontal
+	var rotation_abs:float = abs(rotation_x) # 0.0 is vertical --> 1.0 is horizontal
 	var vertical_force = lerp(0.0, -0.5, rotation_abs)
 	
 	# Use the leaf's rotation to add force which should simulate
 	# the air/atmo pressure being applied to the turned surface of the leaf.
-	apply_central_force(Vector3(horizontal_force, vertical_force, 0))
+	apply_central_force(Vector3(horizontal_force, vertical_force, forward_force))
 	
 	# Cap the leaf velocity
 	if state.linear_velocity.length() > MAX_SPEED:
@@ -60,8 +67,6 @@ cull_mode = 2
 size = Vector3(2, 0.1, 1)
 
 [node name="Leaf" type="RigidBody3D"]
-axis_lock_linear_z = true
-axis_lock_angular_x = true
 axis_lock_angular_y = true
 mass = 0.01
 linear_damp_mode = 1
