@@ -12,7 +12,7 @@ signal fall_end(duration, transform)
 
 
 const MAX_LINEAR_SPEED:float = 100.0
-const MAX_ANGULAR_SPEED:float = 15.0
+const MAX_ANGULAR_SPEED:float = 5.0
 const INPUT_FORCE:float = 0.1
 const DRAG_FORCE:float = 0.5
 const WIND_FORCE:float = 0.4
@@ -33,6 +33,8 @@ var has_started:bool = false
 
 
 func _ready():
+	constant_force = Wind.steady
+	
 	Wind.start.connect(self._on_wind_start)
 	Wind.end.connect(self._on_wind_end)
 
@@ -45,9 +47,9 @@ func _process(delta):
 	if Input.is_action_pressed(\"ui_right\"):
 		input_torque.z -= INPUT_FORCE
 	if Input.is_action_pressed(\"ui_up\"):
-		input_torque.x += INPUT_FORCE
-	if Input.is_action_pressed(\"ui_down\"):
 		input_torque.x -= INPUT_FORCE
+	if Input.is_action_pressed(\"ui_down\"):
+		input_torque.x += INPUT_FORCE
 
 
 func _physics_process(delta):
@@ -86,12 +88,6 @@ func _on_wind_end():
 
 
 func _integrate_forces(state:PhysicsDirectBodyState3D):
-	if wind_direction != Vector3.ZERO:
-		apply_force(wind_direction, wind_origin)
-		
-	if input_torque != Vector3.ZERO:
-		apply_torque(input_torque)
-	
 	var is_flipped:bool = global_transform.basis.y.y < 0.0
 	
 	var rotation_x:float = global_transform.basis.y.x
@@ -104,6 +100,15 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 	# If the leaf is more vertical, it should fall faster.
 	var rotation_abs:float = abs(rotation_x) # 0.0 is vertical --> 1.0 is horizontal
 	var vertical_force = lerp(0.0, -0.5, rotation_abs)
+	if wind_direction != Vector3.ZERO:
+		apply_force(wind_direction, wind_origin)
+		
+	if input_torque != Vector3.ZERO:
+		apply_torque(input_torque)
+	else:
+		# Allow the leaf to attempt to stabilize itself
+		var stabilize_torque:float = lerp(0.0, 0.01, rotation_x)
+		apply_torque(Vector3(0, 0, stabilize_torque))
 	
 	# Use the leaf's rotation to add force which should simulate
 	# the air/atmo pressure being applied to the turned surface of the leaf.
@@ -124,16 +129,13 @@ size = Vector2(2, 1)
 cull_mode = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_u0q8b"]
-size = Vector3(2, 0.1, 1)
+size = Vector3(2, 0.5, 1)
 
 [node name="Leaf" type="RigidBody3D"]
 axis_lock_angular_y = true
 mass = 0.01
-center_of_mass_mode = 1
-center_of_mass = Vector3(0, -1, 0)
-linear_damp_mode = 1
-linear_damp = 2.0
-angular_damp = 2.0
+linear_damp = 1.0
+angular_damp = 1.5
 script = SubResource("GDScript_ls7ra")
 
 [node name="MeshInstance3d" type="MeshInstance3D" parent="."]
