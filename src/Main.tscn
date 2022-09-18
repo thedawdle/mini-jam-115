@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://MainCamera.gd" id="1_on8lf"]
 [ext_resource type="Texture2D" uid="uid://dq3cgs61yyjya" path="res://assets/trace_01.png" id="2_55xw1"]
-[ext_resource type="PackedScene" path="res://TEST_Environment.tscn" id="3_03wdx"]
+[ext_resource type="PackedScene" uid="uid://c4vtr3xkncgrv" path="res://TEST_Environment.tscn" id="3_03wdx"]
 
 [sub_resource type="GDScript" id="GDScript_0rfsx"]
 resource_name = "Main"
