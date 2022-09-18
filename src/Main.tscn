@@ -19,6 +19,7 @@ var current_leaf:RigidBody3D
 @onready var camera:Camera3D = $Camera3d
 @onready var wind_start_timer:Timer = $WindStartTimer
 @onready var wind_end_timer:Timer = $WindEndTimer
+@onready var rain:CPUParticles3D = $Camera3d/CpuParticles3d
 
 
 func _ready():
@@ -73,14 +74,13 @@ script = ExtResource("1_on8lf")
 
 [node name="CpuParticles3d" type="CPUParticles3D" parent="Camera3d"]
 transform = Transform3D(-0.189944, 0.734442, 0.670672, -0.156147, 0.665242, -0.741727, -1.81157, -0.134347, -0.00638783, -1.63498, -0.785289, -9.23974)
-visible = false
 material_override = SubResource("StandardMaterial3D_jla10")
 amount = 200
 mesh = SubResource("PlaneMesh_c41tv")
 emission_shape = 3
 emission_box_extents = Vector3(5, 5, 5)
 particle_flag_rotate_y = true
-direction = Vector3(0.5, 1, 0.5)
+direction = Vector3(0.5, -1, 0.5)
 initial_velocity_min = 1.5
 initial_velocity_max = 2.5
 linear_accel_max = 1.5

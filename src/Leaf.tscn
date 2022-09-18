@@ -11,9 +11,9 @@ class_name Leaf
 signal fall_end(duration, transform)
 
 
-const MAX_LINEAR_SPEED:float = 100.0
-const MAX_ANGULAR_SPEED:float = 5.0
-const INPUT_FORCE:float = 0.1
+const MAX_LINEAR_SPEED:float = 50.0
+const MAX_ANGULAR_SPEED:float = 20.0
+const INPUT_FORCE:float = 0.02
 const DRAG_FORCE:float = 0.5
 const WIND_FORCE:float = 0.4
 
@@ -88,29 +88,33 @@ func _on_wind_end():
 
 
 func _integrate_forces(state:PhysicsDirectBodyState3D):
+	var angular_speed:float = state.angular_velocity.length()
 	var is_flipped:bool = global_transform.basis.y.y < 0.0
 	
 	var rotation_x:float = global_transform.basis.y.x
 	var horizontal_force:float = rotation_x
 	if is_flipped: horizontal_force *= -1
 	
-	var forward_force:float = global_transform.basis.y.z * 0.1
+	var rotation_z:float = global_transform.basis.y.z 
+	var forward_force:float = rotation_z * 0.4
 	if is_flipped: forward_force *= -1
 	
 	# If the leaf is more vertical, it should fall faster.
 	var rotation_abs:float = abs(rotation_x) # 0.0 is vertical --> 1.0 is horizontal
 	var vertical_force = lerp(0.0, -0.5, rotation_abs)
+	
 	if wind_direction != Vector3.ZERO:
+		if angular_speed > MAX_ANGULAR_SPEED: wind_origin = Vector3.ZERO
 		apply_force(wind_direction, wind_origin)
 		
 	if input_torque != Vector3.ZERO:
 		apply_torque(input_torque)
 	
 	# If no other torque is being applied allow the leaf to attempt to stabilize itself
-	if input_torque == Vector3.ZERO and wind_direction == Vector3.ZERO:
-		
-		var stabilize_torque:float = lerp(0.0, 0.01, rotation_x)
-		apply_torque(Vector3(0, 0, stabilize_torque))
+	if state.angular_velocity.length() < 1.0 and input_torque == Vector3.ZERO and wind_direction == Vector3.ZERO:
+		var stabilize_torque_z:float = lerp(0.0, 0.01, rotation_x)
+		var stabilize_torque_x:float = lerp(0.0, 0.01, -rotation_z)
+		apply_torque(Vector3(stabilize_torque_x, 0, stabilize_torque_z))
 	
 	# Use the leaf's rotation to add force which should simulate
 	# the air/atmo pressure being applied to the turned surface of the leaf.
@@ -119,7 +123,7 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 	# Cap the leaf lineaer & angular velocity
 	if state.linear_velocity.length() > MAX_LINEAR_SPEED:
 		state.linear_velocity = state.linear_velocity.normalized() * MAX_LINEAR_SPEED
-	if state.angular_velocity.length() > MAX_ANGULAR_SPEED:
+	if angular_speed > MAX_ANGULAR_SPEED:
 		state.angular_velocity = state.angular_velocity.normalized() * MAX_ANGULAR_SPEED
 	
 "
@@ -136,8 +140,9 @@ size = Vector3(2, 0.5, 1)
 [node name="Leaf" type="RigidBody3D"]
 axis_lock_angular_y = true
 mass = 0.01
-linear_damp = 1.0
-angular_damp = 1.5
+linear_damp = 1.2
+angular_damp_mode = 1
+angular_damp = 1.0
 script = SubResource("GDScript_ls7ra")
 
 [node name="MeshInstance3d" type="MeshInstance3D" parent="."]
