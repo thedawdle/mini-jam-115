@@ -15,7 +15,7 @@ const MAX_LINEAR_SPEED:float = 100.0
 const MAX_ANGULAR_SPEED:float = 15.0
 const INPUT_FORCE:float = 0.1
 const DRAG_FORCE:float = 0.5
-const WIND_FORCE:float = 0.5
+const WIND_FORCE:float = 0.4
 
 
 var input_torque:Vector3 = Vector3.ZERO
@@ -23,7 +23,7 @@ var wind_origin:Vector3 = Vector3.ZERO
 var wind_direction:Vector3 = Vector3.ZERO
 
 var fall_start_time:float = 0.0
-var fall_end_timer:float = 0.0
+var fall_end_time:float = 0.0
 var end_transform:Transform3D
 
 var has_started:bool = false
@@ -62,18 +62,22 @@ func _physics_process(delta):
 func start_fall():
 	freeze = false
 	set_process(true)
+	
+	fall_start_time = Time.get_ticks_msec()
 
 
 func end_fall():
 	freeze = true
 	set_process(false)
 	
+	fall_end_time = Time.get_ticks_msec()
+	var duration:float = fall_end_time - fall_start_time
+	fall_end.emit(duration, global_transform)
+	
 
 func _on_wind_start(origin:Vector3, direction:Vector3):
 	wind_origin = origin
-	
-	var norm_direction:Vector3 = direction.normalized() * WIND_FORCE
-	wind_direction = Vector3(norm_direction.x, direction.y, norm_direction.z)
+	wind_direction = direction
 
 
 func _on_wind_end():
@@ -125,9 +129,10 @@ size = Vector3(2, 0.1, 1)
 [node name="Leaf" type="RigidBody3D"]
 axis_lock_angular_y = true
 mass = 0.01
-can_sleep = false
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -1, 0)
 linear_damp_mode = 1
-linear_damp = 1.0
+linear_damp = 2.0
 angular_damp = 2.0
 script = SubResource("GDScript_ls7ra")
 

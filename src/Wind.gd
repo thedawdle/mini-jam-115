@@ -5,14 +5,14 @@ signal start(origin, direction)
 signal end()
 
 
-const DIRECTION_RANGE:float = 1.0
+const DIRECTION_RANGE:float = 0.5
 const ORIGIN_RANGE:float = 0.001
 
 
 static func get_random_direction() -> Vector3:
 	return Vector3(
 		randf_range(-DIRECTION_RANGE, DIRECTION_RANGE),
-		randf_range(0.1, DIRECTION_RANGE),
+		randf_range(-DIRECTION_RANGE, DIRECTION_RANGE),
 		randf_range(-DIRECTION_RANGE, DIRECTION_RANGE)
 	)
 
