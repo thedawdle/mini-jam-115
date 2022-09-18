@@ -1,0 +1,54 @@
+[gd_scene load_steps=10 format=3 uid="uid://c4vtr3xkncgrv"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hodem"]
+
+[sub_resource type="Sky" id="Sky_70l18"]
+sky_material = SubResource("ProceduralSkyMaterial_hodem")
+
+[sub_resource type="Environment" id="Environment_2hws0"]
+background_mode = 2
+sky = SubResource("Sky_70l18")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_utqwn"]
+size = Vector2(800, 800)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lguof"]
+size = Vector3(1000, 2, 100)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_uegxa"]
+size = Vector2(1000, 1000)
+
+[sub_resource type="Gradient" id="Gradient_dfcuc"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_guvkr"]
+gradient = SubResource("Gradient_dfcuc")
+fill_from = Vector2(0.1, 0.1)
+fill_to = Vector2(0, 0)
+repeat = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tpehb"]
+albedo_texture = SubResource("GradientTexture2D_guvkr")
+
+[node name="TEST_Environment" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_2hws0")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0239, 5.55701, 9.60611)
+mesh = SubResource("PlaneMesh_utqwn")
+skeleton = NodePath("../..")
+
+[node name="StaticBody3d" type="StaticBody3D" parent="Ground"]
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="Ground/StaticBody3d"]
+shape = SubResource("BoxShape3D_lguof")
+
+[node name="TEMP_BG" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 500, -75.168)
+mesh = SubResource("PlaneMesh_uegxa")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_tpehb")
+
+[node name="DirectionalLight3d" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.74023, 0.672354, 0, -0.672354, 0.74023, 0, 0, 0)

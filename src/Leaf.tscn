@@ -7,6 +7,10 @@ script/source = "extends RigidBody3D
 
 class_name Leaf
 
+
+signal fall_end(duration, transform)
+
+
 const MAX_LINEAR_SPEED:float = 100.0
 const MAX_ANGULAR_SPEED:float = 15.0
 const INPUT_FORCE:float = 0.1
@@ -17,6 +21,12 @@ const WIND_FORCE:float = 0.5
 var input_torque:Vector3 = Vector3.ZERO
 var wind_origin:Vector3 = Vector3.ZERO
 var wind_direction:Vector3 = Vector3.ZERO
+
+var fall_start_time:float = 0.0
+var fall_end_timer:float = 0.0
+var end_transform:Transform3D
+
+var has_started:bool = false
 
 
 @onready var mesh:MeshInstance3D = $MeshInstance3d
@@ -40,17 +50,30 @@ func _process(delta):
 		input_torque.x -= INPUT_FORCE
 
 
+func _physics_process(delta):
+	if has_started:
+		if linear_velocity.length() < 0.1:
+			end_fall()
+	else:
+		if linear_velocity.length() > 0.1:
+			has_started = true
+
+
+func start_fall():
+	freeze = false
+	set_process(true)
+
+
+func end_fall():
+	freeze = true
+	set_process(false)
+	
+
 func _on_wind_start(origin:Vector3, direction:Vector3):
 	wind_origin = origin
 	
 	var norm_direction:Vector3 = direction.normalized() * WIND_FORCE
-	wind_direction = Vector3(
-		norm_direction.x,
-		direction.y,
-		norm_direction.z)
-	
-	# This impulse will spin the leaf (offset), but the rest of the wind only pushes it (central force).
-#	apply_impulse(norm_direction / 10, origin)
+	wind_direction = Vector3(norm_direction.x, direction.y, norm_direction.z)
 
 
 func _on_wind_end():
@@ -82,7 +105,6 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 	# the air/atmo pressure being applied to the turned surface of the leaf.
 	apply_central_force(Vector3(horizontal_force, vertical_force, forward_force))
 	
-	
 	# Cap the leaf lineaer & angular velocity
 	if state.linear_velocity.length() > MAX_LINEAR_SPEED:
 		state.linear_velocity = state.linear_velocity.normalized() * MAX_LINEAR_SPEED
@@ -103,6 +125,7 @@ size = Vector3(2, 0.1, 1)
 [node name="Leaf" type="RigidBody3D"]
 axis_lock_angular_y = true
 mass = 0.01
+can_sleep = false
 linear_damp_mode = 1
 linear_damp = 1.0
 angular_damp = 2.0
