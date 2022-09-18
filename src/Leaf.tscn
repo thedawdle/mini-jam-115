@@ -105,8 +105,10 @@ func _integrate_forces(state:PhysicsDirectBodyState3D):
 		
 	if input_torque != Vector3.ZERO:
 		apply_torque(input_torque)
-	else:
-		# Allow the leaf to attempt to stabilize itself
+	
+	# If no other torque is being applied allow the leaf to attempt to stabilize itself
+	if input_torque == Vector3.ZERO and wind_direction == Vector3.ZERO:
+		
 		var stabilize_torque:float = lerp(0.0, 0.01, rotation_x)
 		apply_torque(Vector3(0, 0, stabilize_torque))
 	
